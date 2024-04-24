@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<!-- Jack Edwards 20039542 -->
+<html lang="en">
+    <head>
+        <title>NASQL Editor</title>
+        <!-- Scale the viewport to take the screen size of mobile devices into account. -->
+        <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <link rel="icon" href="/assets/icon-B7lvp6LR.png"/>
+        
+        <!-- External library for creating the split screen. -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/split.js/1.6.0/split.min.js"></script>
+      <script type="module" crossorigin src="/assets/index-f4CubEBM.js"></script>
+      <link rel="stylesheet" crossorigin href="/assets/index-CY39i39F.css">
+    </head>
+    
+    <body>
+    <!-- Left half of screen for graphical designer -->
+    <div id="design" class="split split-horizontal" style="margin:0">
+            <!-- React Flow Node Editor -->
+            <div id="editor" class="nodegraph split content">
+                <div id="root"></div>
+            </div>
+            
+            <!-- SQL Preview Text Box -->
+            <div id="preview" class="codebox split content">
+                <div class="code-menubar">
+                    <p style="display:flex; margin:3px; margin-right: auto; width:50%; min-width:2em">
+                        SQL Code Preview
+                    </p>
+                    <button class="helpbutton" onclick="HelpHidden(false)"> Show Help Screen </button>
+                    <button class="helpbutton" onclick="SchemaHidden(false)"> Show Database Schema </button>
+                </div>
+                <p id="code" style="margin: 0.5em; overflow-x: clip; overflow-y: scroll;">
+                    SELECT * FROM *
+                </p>
+            </div>
+    </div>
+    
+    <!-- Right half of screen for test area. -->
+    <div id="testarea" class="testarea split split-horizontal">
+        <div class="testbox">
+            <!-- Form data is modified depending on node graph. -->
+            <h2 style="width:110%; margin:0"> Query Test Area </h2>
+        
+            <!-- Form inputs for query -->
+			<!-- Form tag not used here since it would reload page! -->
+			Input <b>A:</b> <input id="inputA"></input> 
+			Input <b>B:</b> <input id="inputB"></input> <br/>
+			Input <b>C:</b> <input id="inputC"></input> <br/>
+			Input <b>D:</b> <input id="inputD"></input> <br/>
+			<b>Limit:</b> <input id="limit" type="number" min="1" max="500" value="250"></input>
+			<button onclick="SetQuery()">Submit</button>
+            
+            <!-- Response from server. -->
+            <iframe id="dbframe" class="iframe-table">
+            </iframe>
+        </div>
+    </div>
+    
+    <!-- Help dialog for the app -->
+    <div id="help-start" class='helpdialog' onclick="HelpHidden(true)">
+        Click to close
+    </div>
+    
+    <!-- Help for the example database schema -->
+    <div id="help-schema" class='helpdialog' onclick="SchemaHidden(true)">
+        <img src="/assets/schema-DIQrNPxK.png" style="height: 100%; aspect-ratio: 1;"></img>
+    </div>
+    
+    <script type="text/javascript">
+        // Attach the splitter 
+        Split(['#design', '#testarea'], {
+            direction: 'horizontal',
+            cursor: 'ew-resize',
+            sizes: [75, 25],
+            minSize: 0,
+            gutterSize: 11
+        });
+        Split(['#editor', '#preview'], {
+            direction: 'vertical',
+            cursor: 'ns-resize',
+            sizes: [85, 15],
+            minSize: 0,
+            gutterSize: 11
+        });
+        
+        // Show help/start screens again
+        function HelpHidden(h) { document.getElementById('help-start').hidden = h; }
+        function SchemaHidden(h) { document.getElementById('help-schema').hidden = h; }
+		
+		// Set the limit for the query response
+		function SetLimit() {
+			document.getElementById('limitLabel').innerHTML = event.target.value
+		}
+		
+		// Set the query response to show in the iframe
+		function SetQuery() {
+			let code = document.getElementById('code').innerHTML;
+			// Remove underlines + newlines used by editor
+			code = code.replaceAll('<u>','').replaceAll('</u>','');
+			// Replace HTML-specific entity codes
+			code = code.replaceAll('&gt;','>').replaceAll('&lt;','<').replaceAll('&amp;','&');
+			// Same IP, different port.
+			let URL = 'http://' + document.location.host + ':8080/'+code;
+			document.getElementById('dbframe').setAttribute('src',URL);
+		}
+    </script>
+    </body>
+</html>
