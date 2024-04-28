@@ -11,8 +11,8 @@ var txtLoader = document.getElementById("txtLoader");
 
 // Colours for the screens
 var colIndex = 0;
-const colourForward = ["#2c46ff", "#25a01c", "#b72727", "", "", ""];
-const colourBack = ["#0012e3", "#054700", "#470800", "", ""];
+const colourForward = ["#2c46ff", "#25a01c", "#b72727"];
+const colourBack = ["#0012e3", "#054700", "#470800"];
 
 // Bitmap for normal characters (A-Z,a-z and ascii etc)
 var lcdTextImg = document.getElementById("text");
