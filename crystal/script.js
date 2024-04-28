@@ -87,7 +87,11 @@ function AddNew() {
 
 // Remove a display?
 function Remove() {
-    
+    // Prevented if number of screens < 2
+    if (numScreens > 1) {
+        document.getElementById("screen" + numScreens).remove();
+        numScreens--;
+    }
 }
 
 // Save to user device:
