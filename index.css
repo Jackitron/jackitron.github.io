@@ -11,7 +11,7 @@ a.tile {
 	margin: 0;
 	padding: 0.5em;
 	height: 1.75em;
-	font-size: min(7vw, 2.5em);
+	font-size: min(6vw, 2.5em);
 	line-height: 1em;
 	text-decoration: none;
 	font-family: inherit;
@@ -24,9 +24,10 @@ a.tile:hover {
 }
 p {
 	display: block;
-	font-size: 0.5em;
+	font-size: 0.55em;
 	line-height: 0;
-	margin: 0.75em;
+	margin: 0.5em;
+	margin-top: 0.75em;
 	text-decoration: none;
 	font-family: inherit;
 	color: inherit;
@@ -108,7 +109,7 @@ p {
 	background: linear-gradient(#ea7, #feb, #feb, #ea7);
 	color: #853;
 	box-shadow: 0px 0px 2em #fd7;
-	border-style: 1px dashed;
+	border-style: 5px dotted #c96;
 }
 
 .crystal {
@@ -127,8 +128,24 @@ p {
 .crystal:hover {
 	background: linear-gradient(#8be, #8e8);
 	box-shadow: 0px 0px 2em #8aa;
-	border-style: 1px dashed;
 	color: #fff;
+}
+
+.flatvox {
+	border: 2px solid;
+	border-color: #ed0;
+	color: #640;
+	border-radius: 1em;
+	background: radial-gradient(#ff8, #fd5, #ea5);
+	box-shadow: 0px 0px 1em #ea5;
+	font-family: "Black Ops One", system-ui;
+	font-weight: 400;
+	font-style: normal;
+	animation: 0.8s ease-in-out slidein;
+}
+.flatvox:hover {
+	background: radial-gradient(#ffa, #fe8, #fd0);
+	box-shadow: 0px 0px 1em #ff0;
 }
 
 
