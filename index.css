@@ -1,0 +1,134 @@
+html,body {
+	margin: 0;
+	padding: 0;
+	font-family: sans-serif;
+	background-color: #000;
+	color: #fff;
+}
+
+a.tile {
+	display: block;
+	margin: 0;
+	padding: 0.5em;
+	height: 1.75em;
+	font-size: min(7vw, 2.5em);
+	line-height: 1em;
+	text-decoration: none;
+	font-family: inherit;
+	color: inherit;
+	transition-property: padding-left;
+	transition-duration: 0.5s;
+}
+a.tile:hover {
+	padding-left: 1em;
+}
+p {
+	display: block;
+	font-size: 0.5em;
+	line-height: 0;
+	margin: 0.75em;
+	text-decoration: none;
+	font-family: inherit;
+	color: inherit;
+}
+.container {
+	display: flex;
+	flex-grow: 1;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+}
+/* Title and link to github */ 
+.title {
+	font-family: "Saira", sans-serif;
+	font-size: calc(200%);
+	margin-top: 0;
+}
+.attr {
+	font-family: "Saira", sans-serif;
+	text-decoration-thickness: 1px;
+	color: #ddf;
+	transition-property: text-shadow;
+    transition-duration: 0.5s;
+}
+.attr:hover {
+	font-family: "Saira", sans-serif;
+	text-decoration-thickness: 3px;
+	text-shadow: 0.1em -0.1em #77f;
+	color: #fff;
+}
+
+.middle {
+	width: min(100%, 40em);
+	padding: 2em;
+	background-color: #111;
+}
+
+/* Slide in animation for tiles/cards */
+@keyframes slidein {
+  from {
+    transform: translateX(100%);
+	opacity: 0%;
+  }
+  to {
+    transform: translateX(0%);
+	opacity: 100%;
+  }
+}
+
+/* Each page has unique style */
+.nasql {
+	border: 2px solid #c99;
+	border-radius: 1em;
+	background-color: #d7a;
+	box-shadow: 0px 0px 1em #d57;
+	font-family: "Saira", sans-serif;
+	font-style: italic;
+	animation: 0.5s ease-in-out slidein; 
+}
+.nasql:hover {
+	background-color: #f8a;
+	box-shadow: 0px 0px 2em #e68;
+	border-style: 1px dashed;
+}
+
+.solitaire {
+	border: 4px dotted #c96;
+	color: #400;
+	border-radius: 1em;
+	background: linear-gradient(#da7, #fdb, #fdb, #da7);
+	box-shadow: 0px 0px 1em #da6;
+	font-family: "Federant", serif;
+	font-stretch: 100%;
+	font-weight: bold;
+	animation: 0.6s ease-in-out slidein;
+}
+.solitaire:hover {
+	background: linear-gradient(#ea7, #feb, #feb, #ea7);
+	color: #853;
+	box-shadow: 0px 0px 2em #fd7;
+	border-style: 1px dashed;
+}
+
+.crystal {
+	border: 2px solid #7cc;
+	color: #fff;
+	border-radius: 1em;
+	background: linear-gradient(#8ad, #8c8);
+	box-shadow: 0px 0px 1em #8aa;
+	font-family: "Orbitron", sans-serif;
+	font-optical-sizing: auto;
+	font-weight: 500;
+	font-style: normal;
+	font-variation-settings: "BLED" 0, "SCAN" -10;
+	animation: 0.7s ease-in-out slidein;
+}
+.crystal:hover {
+	background: linear-gradient(#8be, #8e8);
+	box-shadow: 0px 0px 2em #8aa;
+	border-style: 1px dashed;
+	color: #fff;
+}
+
+
