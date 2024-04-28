@@ -1,0 +1,42 @@
+html, body {
+    margin: 0;
+    padding: 1em;
+    font-family: sans-serif;
+}
+h1 {
+    display: inline;
+}
+
+div {
+    background: linear-gradient(#fff, 95%, #ccc);
+    width: min(50em, 99%);
+    border-bottom: 1px solid #000;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 1em;
+    padding-left: 1em;
+    padding-bottom: 1em;
+}
+
+canvas{
+    width: 80%;
+    background-color: #fff;
+    margin-left: 1em;
+    margin-right: 1em;
+    padding: 0;
+}
+
+p, button {
+    display:inline;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+input {
+    width: 70%;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+.mono{
+    font-family: monospace;
+    width: 25%;
+}

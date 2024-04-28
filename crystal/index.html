@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Liquid Crystal Designer</title>
+  <link href="style.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+    <!-- Base image -->
+    <image id="base" src="base.png" hidden onload="Redraw(1)"></image>
+    
+    <!-- image for offscreen canvas to begin to cache LCD characters -->
+    <image id="text" src="text.png" hidden onload="Redraw(1)"></image>
+
+    <!-- automatic downloader for saving files -->
+    <a id="txtSaver" download="lcddata.txt" hidden></a>
+    
+    <div style="background:none;">
+        <h1>LCD</h1><h3>Liquid Crystal Designer</h3>
+        <p>Save Set:</p>
+        <button onclick="SaveText()">Download</button>
+        <br>
+        <p>Load Set:</p>
+        <input id="txtLoader" type="file" onchange="LoadText()"></input>
+        <br>
+        <br>
+        
+        <p>Colour:</p>
+        <select id="colSel" onchange="RedrawAll()">
+            <option value="0">Blue</option>
+            <option value="1">Green</option>
+            <option value="2">Red</option>
+            <option value="3">Amber</option>
+            <option value="4">Yellow</option>
+            <option value="5">Yellow</option>
+        </select>
+        <br>
+        <button onclick="AddNew()">Add New Screen</button>
+        <br>
+
+        <br>
+        <p style="font-family: monospace;">Use Alt 1-9 for custom chars (☺☻♥♦♣♠•◘)</p><br><br>
+        <p>Edit Custom Char:</p>
+        <select>
+            <option value="0">Custom Char 1</option>
+        </select>
+        
+    </div>
+
+    <script src="script.js"></script>
+    
+    <!-- Each div with screen id represents one LCD design stage. -->
+    <div id="screen1">
+        <h1>1</h1>
+        <canvas id="canvas1" width="540" height="240"></canvas>
+        <br>
+        <p>Upper Row</p>
+        <input class="mono" maxlength="16" id="upper1" onchange="Redraw(1)"></input>
+        <br>
+        <p>Lower Row</p>
+        <input class="mono" maxlength="16" id="lower1" onchange="Redraw(1)"></input>
+        <br>
+        <p>Description:</p>
+        <input id="desc1"></input>
+    </div>
+</body>
+
+</html>
