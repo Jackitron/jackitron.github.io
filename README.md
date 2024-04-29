@@ -10,4 +10,4 @@ A continuing work-in-progress portfolio of useful projects and tech demos etc.
 - ***Solitaire*** : Interactive playing card physics simulation suite with parametric control. Powered by P5.js.
 
 ## Future Projects:
-- ***LFI*** : Investigation into a markup language for LCARS-like sci-fi interfaces.
+- ***Sci-kup*** : Investigation into a static markup language for LCARS-like sci-fi interfaces.
