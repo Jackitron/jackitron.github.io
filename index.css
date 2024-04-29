@@ -5,41 +5,6 @@ html,body {
 	background-color: #000;
 	color: #fff;
 }
-
-a.tile {
-	display: block;
-	margin: 0;
-	padding: 0.5em;
-	height: 1.75em;
-	font-size: min(6vw, 2.5em);
-	line-height: 1em;
-	text-decoration: none;
-	font-family: inherit;
-	color: inherit;
-	transition-property: padding-left;
-	transition-duration: 0.5s;
-}
-a.tile:hover {
-	padding-left: 1em;
-}
-p {
-	display: block;
-	font-size: 0.55em;
-	line-height: 0;
-	margin: 0.5em;
-	margin-top: 0.75em;
-	text-decoration: none;
-	font-family: inherit;
-	color: inherit;
-}
-.container {
-	display: flex;
-	flex-grow: 1;
-	align-items: center;
-	justify-content: center;
-	width: 100%;
-	height: 100%;
-}
 /* Title and link to github */ 
 .title {
 	font-family: "Saira", sans-serif;
@@ -59,12 +24,46 @@ p {
 	text-shadow: 0.1em -0.1em #77f;
 	color: #fff;
 }
-
+.container {
+	display: flex;
+	flex-grow: 1;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+}
 .middle {
 	width: min(100%, 40em);
 	padding: 2em;
 	background-color: #111;
 }
+
+a.card {
+	display: block;
+	margin: 0;
+	padding: 0.5em;
+	height: 1.75em;
+	font-size: min(6vw, 2.5em);
+	line-height: 1em;
+	text-decoration: none;
+	font-family: inherit;
+	color: inherit;
+	transition-property: padding-left;
+	transition-duration: 0.5s;
+}
+a.card:hover { padding-left: 1em; }
+
+p {
+	display: block;
+	font-size: 0.55em;
+	line-height: 0;
+	margin: 0.5em;
+	margin-top: 0.75em;
+	text-decoration: none;
+	font-family: inherit;
+	color: inherit;
+}
+
 
 /* Slide in animation for tiles/cards */
 @keyframes slidein {
@@ -77,17 +76,20 @@ p {
 	opacity: 100%;
   }
 }
+/* Defualt attribs for all tiles */
+.card {
+	border-radius: 1em;
+	opacity: 0;
+	animation: 0.6s ease-in-out slidein forwards;
+}
 
 /* Each page has unique style */
 .nasql {
 	border: 2px solid #c99;
-	border-radius: 1em;
 	background-color: #d7a;
 	box-shadow: 0px 0px 1em #d57;
-	opacity: 0;
 	font-family: "Saira", sans-serif;
 	font-style: italic;
-	animation: 0.6s ease-in-out slidein;
 	animation-delay: 0.2s;
 }
 .nasql:hover {
@@ -99,14 +101,10 @@ p {
 .solitaire {
 	border: 4px dotted #c96;
 	color: #400;
-	border-radius: 1em;
 	background: linear-gradient(#da7, #fdb, #fdb, #da7);
 	box-shadow: 0px 0px 1em #da6;
-	opacity: 0;
 	font-family: "Federant", serif;
-	font-stretch: 100%;
 	font-weight: bold;
-	animation: 0.6s ease-in-out slidein;
 	animation-delay: 0.3s;
 }
 .solitaire:hover {
@@ -119,16 +117,9 @@ p {
 .crystal {
 	border: 2px solid #7cc;
 	color: #fff;
-	border-radius: 1em;
 	background: linear-gradient(#8ad, #8c8);
 	box-shadow: 0px 0px 1em #8aa;
-	opacity: 0;
 	font-family: "Orbitron", sans-serif;
-	font-optical-sizing: auto;
-	font-weight: 500;
-	font-style: normal;
-	font-variation-settings: "BLED" 0, "SCAN" -10;
-	animation: 0.6s ease-in-out slidein;
 	animation-delay: 0.4s;
 }
 .crystal:hover {
@@ -140,14 +131,11 @@ p {
 .flatvox {
 	border: 2px solid #ed0;
 	color: #640;
-	border-radius: 1em;
 	background: radial-gradient(#ff8, #fd5, #ea5);
 	box-shadow: 0px 0px 1em #ea5;
-	opacity: 0;
 	font-family: "Black Ops One", system-ui;
 	font-weight: 400;
 	font-style: normal;
-	animation: 0.6s ease-in-out slidein;
 	animation-delay: 0.5s;
 }
 .flatvox:hover {
@@ -159,13 +147,10 @@ p {
 .karnaugh {
 	border: 2px solid #7f7;
 	color: #fff;
-	border-radius: 1em;
 	background: linear-gradient(#9f9, #aea);
 	box-shadow: 0px 0px 1em #5f5;
-	opacity: 0;
 	font-family: "Federant", serif;
 	font-style: italic;
-	animation: 0.6s ease-in-out slidein;
 	animation-delay: 0.6s;
 }
 .karnaugh:hover {
