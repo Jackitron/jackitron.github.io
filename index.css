@@ -84,6 +84,7 @@ p {
 	border-radius: 1em;
 	background-color: #d7a;
 	box-shadow: 0px 0px 1em #d57;
+	opacity: 0;
 	font-family: "Saira", sans-serif;
 	font-style: italic;
 	animation: 0.6s ease-in-out slidein;
@@ -101,6 +102,7 @@ p {
 	border-radius: 1em;
 	background: linear-gradient(#da7, #fdb, #fdb, #da7);
 	box-shadow: 0px 0px 1em #da6;
+	opacity: 0;
 	font-family: "Federant", serif;
 	font-stretch: 100%;
 	font-weight: bold;
@@ -120,6 +122,7 @@ p {
 	border-radius: 1em;
 	background: linear-gradient(#8ad, #8c8);
 	box-shadow: 0px 0px 1em #8aa;
+	opacity: 0;
 	font-family: "Orbitron", sans-serif;
 	font-optical-sizing: auto;
 	font-weight: 500;
@@ -140,6 +143,7 @@ p {
 	border-radius: 1em;
 	background: radial-gradient(#ff8, #fd5, #ea5);
 	box-shadow: 0px 0px 1em #ea5;
+	opacity: 0;
 	font-family: "Black Ops One", system-ui;
 	font-weight: 400;
 	font-style: normal;
@@ -158,6 +162,7 @@ p {
 	border-radius: 1em;
 	background: linear-gradient(#9f9, #aea);
 	box-shadow: 0px 0px 1em #5f5;
+	opacity: 0;
 	font-family: "Federant", serif;
 	font-style: italic;
 	animation: 0.6s ease-in-out slidein;
