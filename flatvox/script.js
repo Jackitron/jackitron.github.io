@@ -153,7 +153,7 @@ function draw()
     fill(160,160,200);
     rect(0, 0, width, height * 0.08);
     fill(255);
-    text("VOX by JACKO", (width / 2) + sin(frameCount/99)*9, height * 0.02);
+    text("FlatVox by Jackitron", (width / 2) + sin(frameCount/99)*9, height * 0.02);
     text("CTRL:EYEDROP || SHIFT:ERASE || SPACE:FILL || W/S:LAYER || A/D:SIZE", width / 2, height * 0.05);
     text("GRID:"+gridSize, width*0.05, height*0.05+canvasSize*1.2);
 
