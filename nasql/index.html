@@ -4,13 +4,14 @@
     <head>
         <title>NASQL Editor</title>
         <!-- Scale the viewport to take the screen size of mobile devices into account. -->
-        <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1.0"/>
-        <link rel="icon" href="/assets/icon-B7lvp6LR.png"/>
+        <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+        <link rel="icon" href="assets/icon-B7lvp6LR.png"/>
         
         <!-- External library for creating the split screen. -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/split.js/1.6.0/split.min.js"></script>
-      <script type="module" crossorigin src="/assets/index-CCNg-QUS.js"></script>
-      <link rel="stylesheet" crossorigin href="/assets/index-077X2-cj.css">
+      <script type="module" crossorigin src="assets/index-CCNg-QUS.js"></script>
+      <link rel="stylesheet" crossorigin href="assets/index-077X2-cj.css">
     </head>
     
     <body>
@@ -18,7 +19,8 @@
     <div id="design" class="split split-horizontal" style="margin:0">
             <!-- React Flow Node Editor -->
             <div id="editor" class="nodegraph split">
-                <div id="root"></div>
+                <div id="root"></div>
+
             </div>
             
             <!-- hidden inputs to save/load node graph -->
@@ -55,16 +57,15 @@
             <b>&emsp;Limit:</b><input id="limit" type="number" min="1" max="500" value="250"></input>
             <button onclick="SetQuery()">Submit</button>
             
-            <!-- Response from server. -->
-            <iframe id="dbframe" class="iframe-table">
-            </iframe>
+            <!-- Server disabled on deployment -->
+	    <p style="color: #f00">Local backend not available online.</p>
         </div>
     </div>
     
     <!-- Help for the example database schema -->
     <div hidden id="help-schema" class='helpdialog' onclick="SchemaHidden(true)">
         <h2>Database Schema View. Click anywhere to close.</h2>
-        <img src="/assets/schema-DIQrNPxK.png" style="height: 100%; aspect-ratio: 1;"></img>
+        <img src="assets/schema-DIQrNPxK.png" style="height: 100%; aspect-ratio: 1;"></img>
     </div>
     
     <!-- Help dialog for the app -->
@@ -90,7 +91,7 @@
                 <li>If you are viewing this page online, the test area will not be used to connect to the database.</li>
                 <li>Every graph in NASQL uses six 'fixed' nodes.
                 These are circular and cannot be deleted.</li>
-                <img style="width: min(40em, 100%)" src="/assets/help_nodes-BUUzdPBl.jpg"/>
+                <img style="width: min(40em, 100%)" src="assets/help_nodes-BUUzdPBl.jpg"/>
                 <li>Changing a node on the graph will change the code preview.</li>
                 <li>Note that the JOIN, GROUP, HAVING and ORDER nodes must be enabled
                 or their options changed to something other than 'None' to affect the output.</li>
@@ -101,15 +102,15 @@
                 <li>Clicking on a node selects the node and all its children.</li>
                 <li>If there is already a selection, clicking will select a single node.</li>
                 <li>Clicking on the background clears the selection.</li>
-                <img style="width:20em" src="/assets/help_select-BLNgOasE.gif"/>
+                <img style="width:20em" src="assets/help_select-BLNgOasE.gif"/>
                 <li>Double clicking or tapping on a node adds a child node.</li>
                 <li>Right-clicking, or a tap and hold on a touchscreen, deletes a node.</li>
-                <img style="width:20em" src="/assets/help_add-G9dsCYJm.gif"/>
+                <img style="width:20em" src="assets/help_add-G9dsCYJm.gif"/>
                 <li>Dragging on the background pans the view, and scrolling or pinching zooms in or out.</li>
                 <li>Nodes can only be deleted if they have no children.</li>
                 <li>Selected nodes can be dragged, and a group of selected nodes
                 will be dragged as one.</li>
-                <img style="width:30em" src="/assets/help_move-cjQJVcvZ.gif"/>
+                <img style="width:30em" src="assets/help_move-cjQJVcvZ.gif"/>
                 <li>The buttons to the top-right of the screen provide the following functions:</li>
 				<img style="height:9em; float:left; margin-right:2em;" src="data:image/png;base64,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"/>
                 <ul>
@@ -121,7 +122,7 @@
                     <li>"LOAD" the node layout from a file.</li>
                 </ul>
 				<li>Dragging on the minimap lets you pan the view quickly.</li>
-				<img style="width:10em" src="/assets/help_map-c8CEgXrY.gif"/>
+				<img style="width:10em" src="assets/help_map-c8CEgXrY.gif"/>
             </ul>
 			<br>
             <li><b>Node Types</b></li>
@@ -176,8 +177,6 @@
             // Replace HTML-specific entity codes
             code = code.replaceAll('&gt;','>').replaceAll('&lt;','<').replaceAll('&amp;','&');
             // Same IP, different port.
-            let URL = 'http://' + document.location.host + ':8080/'+code;
-            document.getElementById('dbframe').setAttribute('src',URL);
             return code;
         }
     </script>
