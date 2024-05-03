@@ -171,13 +171,7 @@
         
         // Set the query response to show in the iframe
         function SetQuery() {
-            let code = document.getElementById('code').innerHTML;
-            // Remove underlines + newlines used by editor
-            code = code.replaceAll('<u>','').replaceAll('</u>','').replaceAll('<br>',' ');
-            // Replace HTML-specific entity codes
-            code = code.replaceAll('&gt;','>').replaceAll('&lt;','<').replaceAll('&amp;','&');
-            // Same IP, different port.
-            return code;
+		// Removed to to static site not having access to backend
         }
     </script>
     </body>
