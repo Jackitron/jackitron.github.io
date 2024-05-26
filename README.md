@@ -7,7 +7,5 @@ A continuing work-in-progress portfolio of useful projects and tech demos etc.
 - ***FlatVox*** : Web editor for prototyping pseudo-3D models using stacks of image slices.
   
 ## Under Construction:
+- ***SymbolCPC*** : Locomotive BASIC symbol definer for the CPC 464.
 - ***Solitaire*** : Interactive playing card physics simulation suite with parametric control. Powered by P5.js.
-
-## Future Projects:
-- ***Sci-kup*** : Investigation into a static markup language for LCARS-like sci-fi interfaces.
