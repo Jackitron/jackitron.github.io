@@ -148,14 +148,14 @@ p {
 	border: 3px dotted #ff0;
 	color: #ff0;
 	background-color: #66f;
-	box-shadow: 0px 0px 1em #36f;
+	box-shadow: 0px 0px 1em #77f;
 	text-shadow: 2px 3px 1px #050;
 	font-family: "VT323", serif;
 	animation-delay: 0.6s;
 }
 .symbol:hover {
-	background-color: #5af;
-	box-shadow: 0px 0px 2em #5f5;
+	background-color: #58f;
+	box-shadow: 0px 0px 2em #8af;
 	text-shadow: 1px 1px 3px #351
 	color: #0f0;
 }
