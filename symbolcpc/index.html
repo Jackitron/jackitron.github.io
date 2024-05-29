@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>CPC Symbols</title>
+        <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <style>
+            html,body {
+                font-family: monospace, sans-serif;
+                background-color: #66f;
+                margin: 0.5em;
+            }
+            h1 {
+                display: inline;
+                color: #ff0;
+                text-shadow: 1px 1px 2px #000;
+                font-size: min(4vw,2em);
+                line-height: 2em;
+            }
+            h4 {
+                display: inline;
+                color: #ff0;
+                text-shadow: 1px 1px 2px #000;
+                font-size: min(2.5vw,1em);
+            }
+            
+            table {
+                width: 100%;
+                aspect-ratio: 1;
+                margin-top: 0.5em;
+            }
+            tr,td {
+                border: 1px solid #aaa;
+                margin: 0;
+                padding: 0;
+            }
+            .symbolDefs {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-wrap: wrap;
+                background: linear-gradient(#fff4, #ffff);
+                width: 100%;
+            }
+            .box {
+                flex-flow: row;
+                flex-grow: 1;
+                margin: 1em;
+                padding: 1em;
+                border: 1px solid #234;
+                border-radius: 5px;
+                background-color: #eff;
+                box-shadow: 4px 4px 10px #44f;
+                max-width: 20em;
+            }
+            .box > i {
+                display: inline;
+                font-weight: bold;
+                color: #008;
+            }
+            /* Multiple texture preview */
+            .box > canvas {
+                float:right;
+                width: 40%;
+                margin: 0.2em;
+                aspect-ratio: 1;
+                border: 1px solid #777;
+                background-color: 0;
+                image-rendering: crisp-edges;
+            }
+            /* short inputs, wide output preview */
+            .short {
+                float: left;
+                width: 50%;
+                font-size: 1em;
+                margin: 0.2em;
+                margin-bottom: 0.5em;
+                padding: 0.4em;
+                border: 1px solid #777;
+                border-radius: 2em;
+                text-align: center;
+            }
+            .wide {
+                width: 95%;
+                padding: 0.4em;
+                border: 1px solid #777;
+                border-radius: 2em;
+                text-align: center;
+                margin-top: 0.2em;
+            }
+            
+            /* ADD Button */
+            .adder {
+                width: 10em;
+                height: 2em;
+                float: bottom;
+                margin: 0.5em;
+                margin-right: calc(100% - 10.5em);
+                margin-bottom: -0.5em;
+                font-size: 1.1em;
+                background-color: #cfd;
+                border: 1px solid #9fa;
+                border-radius: 3em;
+            }
+            .adder:hover {
+                background-color: #aeb;
+            }
+            .adder:active {
+                background-color: #9d9;
+            }
+            .deleter {
+                width: 6em;
+                height: 1.5em;
+                float: right;
+                margin: 0;
+                margin-left: calc(100% - 6em);
+				margin-top: -0.4em;
+				margin-bottom: -1.2em;
+                line-height: 0;
+                font-size: 1em;
+                background-color: #f77;
+                border-radius: 2em;
+                border: 1px solid #a00;
+            }
+            .deleter:hover {
+                background-color: #e77;
+            }
+            .deleter:active {
+                background-color: #a55;
+            }
+        </style>
+    </head>
+    
+    <body>
+        <h1>Locomotive BASIC Symbol Maker </h1>
+        <h4>Jack Edwards 2024</h4>
+        
+        <!-- Individual boxes, with their own symbols etc. -->
+        <div id="boxes" class="symbolDefs">
+            <button class="adder" onclick="AddBox()">Add New</button>
+            
+            <div id="original" class="box">
+                <i>Pattern (drag to draw)</i>
+                <table><tbody id="sym1"></tbody></table>
+                <canvas id="canv1" width="64" height="64"></canvas>
+                <i>Developer Note </i>
+                <input id="note1" type="text" class="short"></input>
+                <br>
+                
+                <i>Char Number (0-255) </i>
+                <input id="char1" type="number" class="short" value="0" min="0" max="255" onchange="UpdateBox('sym1')"></input>
+                <br>
+                <i>BASIC Output</i>
+                <input id="out1" class="wide" readonly="true" onclick="select()"></input>
+            </div>
+        </div>
+        
+        <script>
+            // Set number of symbol boxes to reference later
+            var numBoxes = 1;
+            
+            // Make an initial 8x8 table, complete with function calls
+            for (let i = 0; i < 8; i++) {
+                var newRow = document.createElement('tr');
+                for (let i = 0; i < 8; i++) {
+                    let newTD = document.createElement('td');
+                    // Dragging over pixels will set them.
+                    newTD.setAttribute('onmouseenter','SetPixel()');
+                    newTD.setAttribute('style','background-color:#000');
+                    newRow.appendChild(newTD);
+                }
+                document.getElementById('sym1').appendChild(newRow);
+            }
+            //document.getElementById('sym1').setAttribute('ondragstart', 'return false');
+            
+            // Update the very first box anyway.
+            UpdateSymBox('sym1');
+            
+            var drawing = false;
+            var drawColour = '#000';
+            // When the mouse is clicked, toggle between pixel draw/erase or white/black
+            // This locks based on the pixel where the drawing started.
+            onmousedown = (event) => {
+                // Only if started dragging on a symbol pixel!
+                if (event.target.tagName == 'TD') {
+                    if (event.target.getAttribute('style').includes('#000')) drawColour = '#fff';
+                    else drawColour = '#000';
+                    // And swap THIS initial pixel
+                    event.target.setAttribute('style','background-color:' + drawColour);
+                    UpdateSymBox(event.target.parentElement.parentElement.id);
+                    drawing = true;
+                }
+                console.log(0);
+            };
+            // Or touch equivalent
+            ontouchmove = (event) => {
+                console.log("y");
+            };
+            onmouseup = (event) => { drawing = false; };
+            
+            // Sets pixels DURING drawing.
+            function SetPixel() {
+                if (drawing) {
+                    event.target.setAttribute('style','background-color:' + drawColour);
+                    // Update symbol's parent this => tr => tbody (which has an id!)
+                    UpdateSymBox(event.target.parentElement.parentElement.id);
+                }
+                //return false;
+            }
+            
+            // Run an update to convert code from the pattern/inputs to the readonly output.
+            function UpdateSymBox(id) {
+                // Get the box number from the tbody id.
+                let boxNum = id.split('sym')[1];
+                let tbody = document.getElementById(id);
+                
+                // Get canvas context
+                let ctx = document.getElementById('canv'+boxNum).getContext('2d');
+                ctx.imageSmoothingEnabled = false;
+                // Set black, then only fill white.
+                ctx.fillStyle = "#000";
+                ctx.fillRect(0,0,64,64);
+                ctx.fillStyle = "#fff";
+                
+                // Traverse "tree" of table elements / pixels
+                let bytes = [];
+                // set coords
+                let px = 0;
+                let py = 0;
+                tbody.childNodes.forEach(row => {
+                    if (row.tagName == 'TR') {
+                        // set output bits
+                        let bits = 0;
+                        let bitIndex = 7;
+                        row.childNodes.forEach(col => {
+                            if (col.getAttribute('style').includes('#fff')) {
+                                bits |= (1 << bitIndex);
+                                // draw on canvas, texture repeat 4 times, 2x2 pixels
+                                for (let rep = 0; rep < 64; rep+=16) {
+                                    ctx.fillRect(px+rep,py+0, 2,2);
+                                    ctx.fillRect(px+rep,py+16,2,2);
+                                    ctx.fillRect(px+rep,py+32,2,2);
+                                    ctx.fillRect(px+rep,py+48,2,2);
+                                }
+                            }
+                            bitIndex--;
+                            px+=2;
+                        });
+                        px = 0;
+                        py+=2;
+                        bytes.push(bits);
+                    }
+                });
+                
+                // Update this box's output!
+                let outStr = 'SYMBOL &'
+                    + document.getElementById('char'+boxNum).value.toString(16).padStart(2, '0')
+                    + ',';
+                // !!! ASIDE: DO NOT use decimal values to reduce program size!!!!
+                // Loco BASIC performs tokenisation more efficiently when using single hex bytes
+                // i.e. using decimals warrants using the 16-bit decimal tokens instead of hex.
+                bytes.forEach(b => {outStr += '&' + b.toString(16).padStart(2, '0') + ',' });
+                // remove last comma
+                outStr = outStr.substring(0,outStr.length-1);
+                document.getElementById('out'+boxNum).value = outStr;
+            }
+            
+            // Copies the leading box, replacing IDs and blanking inputs etc.
+            function AddBox() {
+                // Copy original box
+                let lastBoxHTML = document.getElementById('original').innerHTML;
+                let newBox = document.createElement('div');
+                newBox.setAttribute('class','box');
+                
+                // Add delete button. Only boxes created after the first receive one.
+                let delBtn = document.createElement('button');
+                delBtn.innerHTML = 'Delete';
+                delBtn.setAttribute('onclick','DeleteBox()');
+                delBtn.setAttribute('class', 'deleter');
+                newBox.appendChild(delBtn);
+                
+                // Replace style refs
+                let next = numBoxes + 1;
+                lastBoxHTML = lastBoxHTML.replace('sym1','sym'+next);
+                lastBoxHTML = lastBoxHTML.replace('canv1','canv'+next);
+                lastBoxHTML = lastBoxHTML.replace('note1','note'+next);
+                lastBoxHTML = lastBoxHTML.replace('char1','char'+next);
+                lastBoxHTML = lastBoxHTML.replace('out1','out'+next);
+                
+                newBox.innerHTML += lastBoxHTML;
+                document.getElementById('boxes').appendChild(newBox);
+                
+                // And increment for next?
+                numBoxes = next;
+                UpdateSymBox('sym'+next);
+            }
+            
+            // Remove a given box at the index
+            // Does NOT change numBoxes, which acts as a unique reference.
+            function DeleteBox() {
+                // Gets parent div of event target (the delete button)
+                event.target.parentElement.remove();
+            }
+            
+        </script>
+    </body>
+</html>
