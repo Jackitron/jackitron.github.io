@@ -170,7 +170,7 @@
                 }
                 document.getElementById('sym1').appendChild(newRow);
             }
-            //document.getElementById('sym1').setAttribute('ondragstart', 'return false');
+            document.getElementById('sym1').setAttribute('ondragstart', 'return false');
             
             // Update the very first box anyway.
             UpdateSymBox('sym1');
@@ -189,7 +189,6 @@
                     UpdateSymBox(event.target.parentElement.parentElement.id);
                     drawing = true;
                 }
-                console.log(0);
             };
             // Or touch equivalent
             ontouchmove = (event) => {
@@ -204,7 +203,6 @@
                     // Update symbol's parent this => tr => tbody (which has an id!)
                     UpdateSymBox(event.target.parentElement.parentElement.id);
                 }
-                //return false;
             }
             
             // Run an update to convert code from the pattern/inputs to the readonly output.
@@ -300,7 +298,6 @@
                 // Gets parent div of event target (the delete button)
                 event.target.parentElement.remove();
             }
-            
         </script>
     </body>
 </html>
