@@ -250,13 +250,11 @@
                 });
                 
                 // Update this box's output!
-                let outStr = 'SYMBOL &'
-                    + document.getElementById('char'+boxNum).value.toString(16).padStart(2, '0')
-                    + ',';
-                // !!! ASIDE: DO NOT use decimal values to reduce program size!!!!
-                // Loco BASIC performs tokenisation more efficiently when using single hex bytes
-                // i.e. using decimals warrants using the 16-bit decimal tokens instead of hex.
-                bytes.forEach(b => {outStr += '&' + b.toString(16).padStart(2, '0') + ',' });
+                let outStr = 'SYMBOL &' + document.getElementById('char'+boxNum).value; + ',';
+                // ASIDE: Thought that Loco BASIC does tokenisation more efficiently on &hh bytes.
+		// However, MORE space is used! The standard number can use "0" to "9" tokens but hex cannot.
+                // thus using decimals tokens is better than using "&" and an 8-bit hex value or two 8-bit constants.
+                bytes.forEach(b => {outStr += '&' + b + ',' });
                 // remove last comma
                 outStr = outStr.substring(0,outStr.length-1);
                 document.getElementById('out'+boxNum).value = outStr;
