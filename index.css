@@ -145,10 +145,10 @@ p {
 }
 
 .symbol {
-	border: 3px dotted #ff0;
+	border: 2px dashed #ff07;
 	color: #ff0;
 	background-color: #66f;
-	box-shadow: 0px 0px 1em #77f;
+	box-shadow: 0px 0px 1em #78f;
 	text-shadow: 2px 3px 1px #050;
 	font-family: "VT323", serif;
 	animation-delay: 0.6s;
@@ -156,8 +156,26 @@ p {
 .symbol:hover {
 	background-color: #58f;
 	box-shadow: 0px 0px 2em #8af;
-	text-shadow: 1px 1px 3px #351
-	color: #0f0;
+	text-shadow: 1px 1px 3px #351;
+	color: #ff5;
+}
+
+.bubble {
+	border: 2px solid #0f0;
+	border-top: 2px solid #8f0;
+	border-bottom: 2px solid #8f0;
+	color: #040;
+	background: linear-gradient(to right, #5e5, #de5, #3d7);
+	box-shadow: 0px 0px 1em #6f6;
+	text-shadow: 3px 3px 2px #ce7;
+	font-family: "Syne Mono", monospace;
+	font-weight: bold;
+	animation-delay: 0.7s;
+}
+.bubble:hover {
+	color: #052;
+	background: linear-gradient(to right, #6e5, #df5, #4e8);
+	box-shadow: 0px 0px 2em #af8;
 }
 
 .karnaugh {
@@ -174,5 +192,3 @@ p {
 	box-shadow: 0px 0px 2em #5f5;
 	color: #960;
 }
-
-
