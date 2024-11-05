@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Bubble Shoota</title>
+		<style>
+			html {
+				font-family: sans-serif;
+				margin: 0;
+				padding: 0;
+				width: 100%;
+				height: 100%;
+			}
+			h3 {
+				margin: 12px;
+				padding-left: 1em;
+			}
+			canvas,div {
+				outline: 1px solid #000;
+				margin: 0;
+				padding: 0;
+				margin-left: 2em;
+			}
+			button {
+				margin: 1px;
+				padding: 3px;
+				font-size: 14px;
+			}
+			input,p {
+				margin: 4px;
+				margin-right: -2px;
+				font-size: 14px;
+				padding: 0;
+				display: inline;
+			}
+			.w {
+				width: 50px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<h3>Jackitron's Bubble Shoota (AI Coming Soon?)</h3>
+		<canvas id="canvas" width=1280 height=800></canvas>
+		<br>
+
+		<!-- Some controls for the game settings -->
+		<div id="options" style="width:1280px">
+			<p>New Game:</p>
+			<button onclick="GAME_ROWS=6; GAME_COLS=9; SHOTS_BEFORE_NEW_ROW=9; GameReset()">S</button>
+			<button onclick="GAME_ROWS=9; GAME_COLS=13; SHOTS_BEFORE_NEW_ROW=6; GameReset()">M</button>
+			<button onclick="GAME_ROWS=14; GAME_COLS=16; SHOTS_BEFORE_NEW_ROW=6; GameReset()">L</button>
+			<button onclick="GAME_ROWS=20; GAME_COLS=20; SHOTS_BEFORE_NEW_ROW=5; GameReset()">XL</button>
+			<p>Different Colors:</p>
+			<input id="opt_hues" class="w" type="number" value="4" step="1" min="2" max="6" onchange="HUES_TO_USE=Number(event.target.value-1)"></input>
+			&nbsp;
+			<p>Cannon AI Control:</p>
+			<input id="opt_ai" autocomplete="off" type="checkbox" checked="false" onchange="aiEnabled=event.target.checked"></input>
+			&nbsp;
+			<p>Shot+Bounce Guides:</p>
+			<input id="opt_guides" autocomplete="off" type="checkbox" checked="false" onchange="guidesEnabled=event.target.checked"></input>
+			&nbsp;
+			<br>
+			<p>Critical Mass:</p>
+			<input id="opt_mass" class="w" type="number" value="2" step="1" min="1" max="9" onchange="CRITICAL_MASS=Number(event.target.value);"></input>
+			<p>Shot Speed:</p>
+			<input id="opt_speed" class="w" type="number" min="0.05" max="0.9" value="0.5" step="0.05" onchange="SHOT_BUBBLE_SPEED=Number(min(max(event.target.value,0),1));"></input>
+			&nbsp;
+			<p>Shots Before New Row:</p>
+			<input id="opt_shots" class="w" type="number" value="3" step="1" min="1" max="9" onchange="SHOTS_BEFORE_NEW_ROW=Number(min(max(event.target.value,0),1));"></input>
+			&nbsp;
+		</div>
+		
+		<script defer="true">
+			// Connect to the canvas
+			var canvas = document.getElementById("canvas");
+			var screen = canvas.getContext("2d");
+			// set by resize events
+			var sWidth = 0;
+			var sHeight = 0;
+			var sThetaAngle = 0;
+			var sBubbleSize = 16;
+
+			// AI control set by user
+			var aiEnabled = false;
+			// Guides set by userSize
+			var guidesEnabled = false;
+
+			// Set on 
+			var mouseX = 0;
+			var mouseY = 0;
+			// Game vars
+			const GAME_HUES = ["none", "#f04", "#04f", "#2c0", "#666", "#e90", "#b2b", "#0bc"];
+			var HUES_TO_USE = 3;
+			var GAME_ROWS = 14;
+			var GAME_COLS = 16;
+			var SHOTS_BEFORE_NEW_ROW = 6;
+			// "Critical mass" refers to when a new bubble lands...
+			// ...how many bubbles of the same colour need be adjacent to it to mark for removal.
+			// Bubbles are then "marked" for removal by being white (bubbles[i] = 255)
+			var CRITICAL_MASS = 3;
+			// And ball speed (in bubblesize(s) per frame)
+			var SHOT_BUBBLE_SPEED = 0.5;
+
+			// And apply these configurable vars (not constants!)
+			opt_ai.checked = aiEnabled;
+			opt_guides.checked = guidesEnabled;
+			opt_mass.value = CRITICAL_MASS;
+			opt_speed.value = SHOT_BUBBLE_SPEED;
+			opt_hues.value = HUES_TO_USE;
+			opt_shots.value = SHOTS_BEFORE_NEW_ROW;
+
+			// Frame counter
+			var frameCount = 0;
+
+			// Sick of typing Math.PI?
+			// As if it's going to fking change or summat. Why not include it in core JS?
+			// Hold up. Wait a minute. I found this on SO (mystery bullshit)
+			const { atan2, atan, min, max, sin, cos, PI, round, floor } = Math;
+
+			// I have changed this to an array of objects.
+			// It makes more sense, since the collision logic was becoming cursed with a plain 2d array!
+			// This holds a number representing the hue in the GAME_HUES dict.
+			// The idea being that anything > 0 is a hue in the array. 0 is air. not drawn.
+			// FIXME [row * GAME_COLS + col % GAME_COLS] indexing to be used at all times.
+			var bubbles = new Uint8Array(20 * 20);
+
+			// Player cannon vars
+			var playerAimAngle = 0;
+			// Score of course.
+			var playerScore = 0;
+			// upon true, blocks all shooting until a new game is started.
+			var gameOver = false;
+			// New bubble fired from cannon.
+			// Normally hidden until fired anyway...
+			var newBubbleX = -80;
+			var newBubbleX = -80;
+			// Every n shots, a new row is added.
+			var shotsTaken = 0;
+
+			// New bubble is assigned this upon shooting
+			var nextBubbleHue = -1;
+			// This becomes cannon angle upon firing cannon.
+			var shotBubbleHue = -1;
+			var shotBubbleAngle = 0;
+			var shotBubbleX = 0;
+			var shotBubbleY = 0;
+			var busyWithShot = false;
+			// Also store the number of remaining bubbles (updated in loop)
+			var remainingBubbles = GAME_ROWS * GAME_COLS;
+
+			// Run at ~50fps
+			var LOOP_HANDLE = setInterval(loop, 16);
+			// Set canvas size on resize
+			onresize = () => SetSize();
+
+			// And set
+			onmousemove = (event) => {
+				if (aiEnabled) return;
+				if (event.target.id == "canvas") {
+					mouseX = event.offsetX;
+					mouseY = event.offsetY;
+				}
+			}
+
+			// Fire?
+			onmousedown = (event) => {
+				// DEBUG: Quite useful!
+				//alert("R:"+YToR(mouseY) +"C:"+ XYToC(mouseX, mouseY) );
+				if (aiEnabled || busyWithShot || gameOver || remainingBubbles == 0) return;
+				if (event.target.id == "canvas") {
+					// Or fire shot if not busy with one.
+					shotBubbleAngle = playerAimAngle;
+					shotBubbleX = sWidth/2;
+					shotBubbleY = sHeight * 0.97;
+					// Advance roughly to end of barrel!
+					shotBubbleX += cos(shotBubbleAngle) * sWidth/8;
+					shotBubbleY += sin(shotBubbleAngle) * sWidth/8;
+					shotBubbleHue = nextBubbleHue;
+					SetNextHue();
+					busyWithShot = true;
+				}
+			}
+
+			// Next colour
+			function SetNextHue() {
+				let currentHue = nextBubbleHue;
+				nextBubbleHue = round(1 + Math.random()*HUES_TO_USE);
+				// Avoid getting the same bubble twice. No easy mode here!
+				if (nextBubbleHue == currentHue) {
+					nextBubbleHue = max((currentHue+1) % HUES_TO_USE, 1);
+				}
+			}
+
+			// Reset score, next time etc.
+			// Create a clean, random array of bubbles
+			function GameReset() {
+				playerAimAngle = 0;
+				playerScore = 0;
+				newBubbleX = -80;
+				newBubbleX = -80;
+				shotsTaken = 0;	   
+				newBubbleAngle = 0;
+				busyWithShot = false;
+				gameOver = false;
+				clearInterval(LOOP_HANDLE);
+				
+				// Just in case
+				opt_ai.checked = aiEnabled;
+				opt_guides.checked = guidesEnabled;
+				opt_mass.value = CRITICAL_MASS;
+				opt_speed.value = SHOT_BUBBLE_SPEED;
+				opt_hues.value = HUES_TO_USE;
+				opt_shots.value = SHOTS_BEFORE_NEW_ROW;
+
+				// Must be different to 2nd to last random number
+				let rnd1 = 0;
+				let rnd2 = 0;
+				let rnd3 = 0;
+
+				for (let row = 0; row < GAME_ROWS; row++) {
+					for (let col = 0; col < GAME_COLS; col++) {
+						// Not up to the bottom row. Game would be impossible
+						if (row < (GAME_ROWS-1)/2) {
+							rnd3 = rnd2;
+							rnd2 = rnd1;
+							rnd1 = round(1 + Math.random()*HUES_TO_USE);
+							if (rnd1 == rnd3) { rnd1 = round(1 + Math.random()*HUES_TO_USE); }
+							bubbles[row * GAME_COLS + col % GAME_COLS] = rnd1;
+						}
+						else {
+							bubbles[row * GAME_COLS + col % GAME_COLS] = 0;
+						}
+						bubbles[1, 1] = 2;
+					}
+				}
+				SetSize();
+				LOOP_HANDLE = setInterval(loop, 16);
+			}
+
+			// Copy all other rows downward. It actually works backwards like snake segements.
+			// This is usually called twice, since calling it once jumbles bubbles when stagger displayed
+			function NewRow() {
+				// This can be done as a single loop. Is it any faster though.
+				for (let i = GAME_COLS * GAME_ROWS; i >= 0; i--) {
+					bubbles[i] = bubbles[i - GAME_COLS];
+				}
+				let last = 0;
+				let next = 0;
+				for (let i = 0; i < GAME_COLS; i++) {
+					next = round(1 + Math.random()*HUES_TO_USE);
+					if (next == last) { next = round(1 + Math.random()*HUES_TO_USE); }
+					bubbles[i] = next;
+				}
+			}
+
+			// Firstly...
+			SetNextHue();
+			SetSize();
+			GameReset();
+
+			function loop() {
+				// Background
+				screen.fillStyle = "#224";
+				screen.fillRect(0,0,sWidth, sHeight);
+
+				// Clamp or it looks weird!
+				if (aiEnabled) {
+					// Read bottom row of thing and fire on most common colour?
+					
+				}
+				else {
+					// Or mouse control
+					if (busyWithShot == false && gameOver==false && remainingBubbles > 0) {
+						playerAimAngle = atan2(mouseY - sHeight*0.97, mouseX - sWidth/2);
+						playerAimAngle = min(max(playerAimAngle, -PI*7/8), -PI/8);
+					}
+				}
+
+				// The shot traces one line + bounce 
+				if (guidesEnabled) {
+					screen.beginPath();
+					screen.moveTo(sWidth/2, sHeight*0.97);
+					screen.lineWidth = 1;
+
+					// Ray bounces left?
+					if (playerAimAngle < sThetaAngle+PI/8) {
+						// Form a triangle from known values. Hyp is unknown.
+						// We know adj length will be width/2 (plus bubble radius) as cannon does not move.
+						let oppAngle = PI - playerAimAngle - PI/2;
+						// So we can work out the adjacent - how high to draw the next line
+						let adjLength = ( sin(playerAimAngle) / sin(oppAngle) ) * (sWidth/2 - sBubbleSize/2);
+
+						// Draw initial ray to wall
+						screen.lineTo(sBubbleSize/2, sHeight*0.97 - adjLength);
+
+						//Normal
+						//screen.fillStyle = "#0f0";
+						//screen.fillRect(0, sHeight*0.97 - adjLength, 88,1);
+
+						// Incident ray has become slightly different thanks to ball size
+						// AOI = AOReflect so oppAngle*2 + x = PI
+						let reflect = PI - (PI/2 - oppAngle);
+						screen.lineTo(cos(reflect)*sWidth, sHeight*0.97 - adjLength + sin(reflect)*sWidth);
+					}
+					// Ray bounces right?
+					else if (playerAimAngle > -PI - sThetaAngle-PI/8) {
+						// Form a triangle from known values. Hyp is unknown.
+						// We know adj length will be width/2 (plus bubble radius) as cannon does not move.
+						let oppAngle = PI + playerAimAngle + PI/2;
+						// So we can work out the adjacent - how high to draw the next line
+						let adjLength = ( sin(playerAimAngle) / sin(oppAngle) ) * (sWidth/2 - sBubbleSize/2);
+
+						// Draw initial ray to wall
+						screen.lineTo(sWidth - sBubbleSize/2, sHeight*0.97 - adjLength);
+
+						// oppAngle = AOIncidence = AOReflection
+						let reflect = PI - (PI + oppAngle*2);
+						screen.lineTo(cos(reflect)*sWidth, sHeight*0.97 - adjLength + sin(reflect)*sWidth);
+					}
+					// Otherwise stick the ray offscreen
+					else {
+						screen.lineTo(sWidth/2 + cos(playerAimAngle)*sWidth*2, sHeight*0.97 + sin(playerAimAngle)*sWidth*2);
+					}
+					screen.strokeStyle = "#77a";
+					screen.stroke();
+				}
+				// Of course
+				DrawBubbles();
+
+				// And draw shot bubble if shotBubbleAngle
+				if (busyWithShot) {
+					shotBubbleX += cos(shotBubbleAngle) * SHOT_BUBBLE_SPEED * sBubbleSize;
+					shotBubbleY += sin(shotBubbleAngle) * SHOT_BUBBLE_SPEED * sBubbleSize;
+					// If on edge, bounce
+					if (shotBubbleX - sBubbleSize/2 < 0 || shotBubbleX + sBubbleSize/2 > sWidth) {
+						let reflect = PI-shotBubbleAngle;
+						shotBubbleAngle = reflect;
+					}
+					// OR if it will collide on the next step?
+					scanBubbleX = shotBubbleX + cos(shotBubbleAngle) * SHOT_BUBBLE_SPEED * sBubbleSize * 1.1;
+					scanBubbleY = shotBubbleY + sin(shotBubbleAngle) * SHOT_BUBBLE_SPEED * sBubbleSize * 1.1;
+					let scanHue = bubbles[ YToR(scanBubbleY) * GAME_COLS + XYToC(scanBubbleX, scanBubbleY) ]
+
+					// If a bubble collided 
+					if (scanHue > 0 || shotBubbleY - sBubbleSize/2 < 0) {
+						// Then lock in at current position
+						let walkRow = YToR(shotBubbleY);
+						let walkCol = XYToC(shotBubbleX, shotBubbleY);
+						bubbles[ walkRow * GAME_COLS + walkCol ] = shotBubbleHue;
+						busyWithShot = false;
+
+						// Check: how many nearby of same colour?
+						// And store visited/tovisit 1D long indexes that MATCH the shot colour
+						let toVisit = GetAdjacentMatchingHue(walkRow, walkCol);
+						let visited = [walkRow * GAME_COLS + walkCol];
+						// there is no -1 index of course.
+						let idx = -1;
+
+						// Test adjacency traversal, if any at all
+						while (toVisit.length > 0) {
+							// Pull one from the top
+							idx = toVisit.pop();
+
+							// IF not explored, add to the tree.
+							if (visited.includes(idx) == false) {
+								visited.push(idx);
+								walkRow = floor(idx / GAME_COLS);
+								walkCol = idx % GAME_COLS;
+								GetAdjacentMatchingHue(walkRow, walkCol).forEach(index => {
+									if (toVisit.includes(index) == false) {
+										toVisit.push(index);
+									}
+								});
+							}
+						}
+
+						// Check number of visited things
+						if (visited.length >= CRITICAL_MASS) {
+							// Mark for removal
+							visited.forEach(v => { bubbles[v] = 255; });
+						}
+
+						// Next, remove any orphans not indirectly connected to the top of the screen
+						//(e.g. runs traversal top down)
+						visited = [];
+						toVisit = [];
+						for (let top = 0; top < GAME_COLS; top++) {
+							if (bubbles[top] > 0) {
+								toVisit.push(top);
+							}
+						}
+
+						// Redo traversal, which stores entire area besides orphans
+						while (toVisit.length > 0) {
+							// Pull one from the top
+							idx = toVisit.pop();
+
+							// IF not explored, add to the tree.
+							if (visited.includes(idx) == false) {
+								visited.push(idx);
+								walkRow = floor(idx / GAME_COLS);
+								walkCol = idx % GAME_COLS;
+								GetAdjacent(walkRow, walkCol).forEach(index => {
+									if (toVisit.includes(index) == false) {
+										toVisit.push(index);
+									}
+								});
+							}
+						}
+
+						// Now mark for removal any bubbles that were not in visited
+						for (let i = 0; i < GAME_ROWS*GAME_COLS; i++) {
+							if (visited.includes(i) == false && bubbles[i] > 0) {
+								bubbles[i] = 255;
+							}
+						}
+
+						// And finally, add in a new row to the top of the array
+						// If the number of shots has gone over the limit.
+						shotsTaken++;
+						if (shotsTaken >= SHOTS_BEFORE_NEW_ROW) {
+							shotsTaken = 0;
+							// Called twice to avoid unexpected behaviour
+							NewRow();
+							NewRow();
+						}
+					}
+
+					// If off top, then place on top!
+					DrawBubble(shotBubbleX, shotBubbleY, GAME_HUES[shotBubbleHue]);
+				}
+
+				// Check if done by summing array
+				// Or removing one marked for removal
+				// Quick too! Nice.
+				if (frameCount % 3 == 0) {
+					remainingBubbles = 0;
+					for (let i = GAME_ROWS * GAME_COLS; i >= 0; i--) {
+						if (bubbles[i] > 0) {
+							// breaking allows for deferral to the next loop
+							// bubbles to disappear before game complete!
+							if (bubbles[i] == 255) {
+								bubbles[i] = 0;
+								playerScore++;
+								break;
+							}
+							remainingBubbles++;
+						}
+					}
+				}
+
+				// Cannon
+				screen.beginPath();
+				screen.moveTo(sWidth/2, sHeight*0.97);
+				screen.lineTo(sWidth/2 + cos(playerAimAngle)*sWidth/7, sHeight*0.97 + sin(playerAimAngle)*sHeight/7);
+				screen.lineWidth = sBubbleSize;
+				screen.strokeStyle = "#446";
+				screen.stroke();
+				//and shine
+				screen.beginPath();
+				screen.moveTo(sWidth/2, sHeight*0.97);
+				screen.lineTo(sWidth/2 + cos(playerAimAngle)*sWidth/7, sHeight*0.97 + sin(playerAimAngle)*sHeight/7);
+				screen.lineWidth = sBubbleSize/2;
+				screen.strokeStyle = "#668";
+				screen.stroke();
+				screen.beginPath();
+				screen.moveTo(sWidth/2, sHeight*0.97);
+				screen.lineTo(sWidth/2 + cos(playerAimAngle)*sWidth/7, sHeight*0.97 + sin(playerAimAngle)*sHeight/7);
+				screen.lineWidth = sBubbleSize/5;
+				screen.strokeStyle = "#aac";
+				screen.stroke();
+
+
+				// Player bar and next colour
+				screen.fillStyle = "#777";
+				screen.fillRect(0,sHeight*15/16,sWidth,sHeight/16);
+				// Next:
+				screen.fillStyle = "#fff";
+				screen.fillText("Next:",sWidth*0.38,sHeight*0.98);
+				// ball inside dark circle
+				screen.fillStyle = "#224";
+				screen.beginPath();
+				screen.ellipse(sWidth/2, sHeight*0.969, sWidth/35, sHeight/35,0,0,2*PI);
+				screen.fill();
+				DrawNextBubble(sWidth/2, sHeight*0.969, GAME_HUES[nextBubbleHue], sHeight/25);
+				
+				// highlight where the bubble's row/col will be on landing.
+				if (guidesEnabled) {
+					DrawBubble(CRToX(XYToC(mouseX, mouseY), YToR(mouseY)), RToY(YToR(mouseY)), "#fff2");
+				}
+
+				// Or if anything in last row, game over!
+				for (let i = 1; i <= GAME_COLS; i++) {
+					if ( bubbles[GAME_ROWS*GAME_COLS - i] > 0 &&  bubbles[GAME_ROWS*GAME_COLS - i] < 255) {
+						gameOver = true;
+					}
+				}
+
+				// Always track score!
+				// Score is increased when removing bubbles with a hue of 255.
+				screen.fillStyle = "#fff";
+				screen.fillText("Score:"+playerScore.toString().padStart(5,'0'),sWidth*0.1,sHeight*0.98);
+
+				// Gameover line. (goes red if crossed)
+				if (gameOver) {
+					screen.fillStyle = "#a00";
+					if (frameCount % 20 > 10) {
+						screen.fillStyle = "#f00";
+					}
+					screen.fillText("Game Over",sWidth*0.75,sHeight*0.98);
+				}
+				screen.fillRect(0,sBubbleSize*0.6 + sBubbleSize*(GAME_ROWS-1),sWidth,2);
+
+				// If AI enabled?
+				if (aiEnabled) {
+					screen.fillStyle = "#0ee";
+					screen.fillText("AI Mode",sWidth*0.75,sHeight*0.98);
+				}
+				// Or let user handle this.
+				else if (gameOver == false) {
+					screen.fillStyle = "#fff";
+					screen.fillText("Row in "+(SHOTS_BEFORE_NEW_ROW - shotsTaken)+"...",sWidth*0.75,sHeight*0.98);
+				}
+				frameCount++;
+			}
+
+
+			// Draw all bubbles and also counts where a "marked" one for removal is.
+			function DrawBubbles() {				
+				for (let row = 0; row < GAME_ROWS; row++) {
+					for (let col = 0; col < GAME_COLS; col++) {
+						let drawX = CRToX(col,row);
+						let drawY = RToY(row);
+						
+						if (bubbles[row * GAME_COLS + col % GAME_COLS] > 0) {
+							if (bubbles[row * GAME_COLS + col % GAME_COLS] == 255) {
+								DrawBubble(drawX, drawY, "#fff");
+							}
+							else {
+								DrawBubble(drawX, drawY, GAME_HUES[bubbles[row * GAME_COLS + col % GAME_COLS]]);
+							}
+						}
+					}
+				}
+			}
+
+
+			// Convert virtual array coords into real, honeycomb-staggered screen drawing coords
+			// This is destructive, and once converted back, the values will be rounded to the nearest hexagonal cell
+			// The kicker: It needs y to get the staggering on x
+			//function CRToX(c,r) { return sBubbleSize*0.6 + (sBubbleSize * c) + (c * sBubbleSize/9) + (r % 2)*sBubbleSize/2; }
+			function CRToX(c,r) { return sBubbleSize*0.6 + (1.15 * sBubbleSize * c) + (r % 2)*sBubbleSize/1.75; }
+			function RToY(r) { return sBubbleSize*0.6 + sBubbleSize * r; }
+
+			// Convert screen coords into nearest virtual array coords by inverting the honeycomb transform
+			// The opposite of modulo is not possible, so this only works because Y is known and not modded.
+			function XYToC(x,y) {
+				// CRToX dictates X is some proportions of a*C + b*R
+				// So recreate the stagger and subtract to leave use with c component
+				let RPart = (YToR(y) % 2) * sBubbleSize/1.75;
+				// We know R from Y, so we can subtract r component to get c component of x
+				let CPart = (x - RPart);
+				let cc = (CPart)/sBubbleSize;
+				return min(max(floor(cc/1.15),0),GAME_COLS-1);
+			}
+			function YToR(y) {
+				let rr = (y) / sBubbleSize;
+				return min(max( floor(rr) ,0),GAME_ROWS-1);
+			}
+
+
+			// Draws a bubble where the centre is at x,y
+			function DrawBubble(x, y, hue) {
+				let sz = sBubbleSize*0.1;
+				let grad = screen.createRadialGradient(x+sz,y+sz,0,x+sz,y+sz,sBubbleSize*0.45);
+				grad.addColorStop(1, hue);
+				grad.addColorStop(0, "white");
+				screen.fillStyle = grad;
+				screen.beginPath();
+				screen.ellipse(x,y,sBubbleSize/2,sBubbleSize/2,0,0,2*PI);
+				screen.fill();
+			}
+			// Or at a specific size for (next:)
+			function DrawNextBubble(x, y, hue, userSize) {
+				let sz = userSize*0.1;
+				let grad = screen.createRadialGradient(x+sz,y+sz,0,x+sz,y+sz,userSize*0.45);
+				grad.addColorStop(1, hue);
+				grad.addColorStop(0, "white");
+				screen.fillStyle = grad;
+				screen.beginPath();
+				screen.ellipse(x,y,userSize/2,userSize/2,0,0,2*PI);
+				screen.fill();
+			}
+
+			// Returns a list of 1D bubble array indexes
+			function GetAdjacentMatchingHue(rr, cc) {
+				let adj = [];
+				// Adjust visually for stagger or it don't make sense!
+				if (rr % 2 == 0) {
+					if (AdjHueMatch(rr-1,cc-1,shotBubbleHue)) { adj.push((rr-1) * GAME_COLS + (cc-1)); } // top two
+					if (AdjHueMatch(rr-1,cc,shotBubbleHue)) { adj.push((rr-1) * GAME_COLS + cc); }
+					if (AdjHueMatch(rr,cc-1,shotBubbleHue)) { adj.push(rr * GAME_COLS + (cc-1)); } // <<side
+					if (AdjHueMatch(rr,cc+1,shotBubbleHue)) { adj.push(rr * GAME_COLS + (cc+1)); } // >>side
+					if (AdjHueMatch(rr+1,cc-1,shotBubbleHue)) { adj.push((rr+1) * GAME_COLS + (cc-1)); } // bottom two
+					if (AdjHueMatch(rr+1,cc,shotBubbleHue)) { adj.push((rr+1) * GAME_COLS + cc); }
+				}
+				else {
+					if (AdjHueMatch(rr-1,cc,shotBubbleHue)) { adj.push((rr-1) * GAME_COLS + cc); } // top two
+					if (AdjHueMatch(rr-1,cc+1,shotBubbleHue)) { adj.push((rr-1) * GAME_COLS + (cc+1)); }
+					if (AdjHueMatch(rr,cc-1,shotBubbleHue)) { adj.push(rr * GAME_COLS + (cc-1)); } // <<side
+					if (AdjHueMatch(rr,cc+1,shotBubbleHue)) { adj.push(rr * GAME_COLS + (cc+1)); } // >>side
+					if (AdjHueMatch(rr+1,cc,shotBubbleHue)) { adj.push((rr+1) * GAME_COLS + cc); } // bottom two
+					if (AdjHueMatch(rr+1,cc+1,shotBubbleHue)) { adj.push((rr+1) * GAME_COLS + (cc+1)); }
+				}
+				return adj;
+			}
+			// Or return true for one bubble. NOTE == -> = (for always marking for removal)
+			function AdjHueMatch(r,c,hue) {
+				if (r < 0 || c < 0 || r > GAME_ROWS-1 || c > GAME_COLS-1) {return false;}
+				if (bubbles[r * GAME_COLS + c] == hue) { return true; }
+				else { return false; }
+			}
+			// And modified version for ignoring hue. Just get connected ones!
+			function GetAdjacent(rr, cc) {
+				let adj = [];
+				// Adjust visually for stagger or it don't make sense!
+				if (rr % 2 == 0) {
+					if (AdjMatch(rr-1,cc-1)) { adj.push((rr-1) * GAME_COLS + (cc-1)); } // top two
+					if (AdjMatch(rr-1,cc)) { adj.push((rr-1) * GAME_COLS + cc); }
+					if (AdjMatch(rr,cc-1)) { adj.push(rr * GAME_COLS + (cc-1)); } // <<side
+					if (AdjMatch(rr,cc+1)) { adj.push(rr * GAME_COLS + (cc+1)); } // >>side
+					if (AdjMatch(rr+1,cc-1)) { adj.push((rr+1) * GAME_COLS + (cc-1)); } // bottom two
+					if (AdjMatch(rr+1,cc)) { adj.push((rr+1) * GAME_COLS + cc); }
+				}
+				else {
+					if (AdjMatch(rr-1,cc)) { adj.push((rr-1) * GAME_COLS + cc); } // top two
+					if (AdjMatch(rr-1,cc+1)) { adj.push((rr-1) * GAME_COLS + (cc+1)); }
+					if (AdjMatch(rr,cc-1)) { adj.push(rr * GAME_COLS + (cc-1)); } // <<side
+					if (AdjMatch(rr,cc+1)) { adj.push(rr * GAME_COLS + (cc+1)); } // >>side
+					if (AdjMatch(rr+1,cc)) { adj.push((rr+1) * GAME_COLS + cc); } // bottom two
+					if (AdjMatch(rr+1,cc+1)) { adj.push((rr+1) * GAME_COLS + (cc+1)); }
+				}
+				return adj;
+			}
+			function AdjMatch(r,c,hue) {
+				if (r < 0 || c < 0 || r > GAME_ROWS-1 || c > GAME_COLS-1) {return false;}
+				if (bubbles[r * GAME_COLS + c] > 0 && bubbles[r * GAME_COLS + c] < 255) { return true; }
+				else { return false; }
+			}
+
+			// And on window resized
+			function SetSize() {
+				sWidth = (window.innerWidth-40) * 0.9;
+				// Title and other bits take up 48px of space?
+				if (sWidth > (window.innerHeight-40) * 0.9) {
+					sWidth = (window.innerHeight-40) * 0.9;
+				}
+				sHeight = sWidth;
+
+				// bubblesize must take some gaps + stagger offset into account
+				sBubbleSize = sWidth / (GAME_COLS + 2);
+				// so start with a reasonable estimate and work down!
+				while (CRToX(GAME_COLS-1,1) > sWidth - sBubbleSize/2) {
+					sBubbleSize -= 0.5;
+					// how many iterations?
+					//console.log("waited");
+				}
+				sBubbleSize += 0.05;
+
+				// We don't want to draw two rays if one's going to be infinity long, so wait until angle is sensible.
+				// If we assume cannon origin to the top left corner of game is a right angled tri
+				// Then we know theta is tan-1(y/x) from trig, so if we cross that corner, bounce ray.
+				// This serves as the threshold for whether to do the angle bounce or not.
+				sThetaAngle = atan(sHeight*0.97 / (sWidth/2)) - PI;
+
+				// Resize canvas
+				if (canvas.width != sWidth) {
+					canvas.width = sWidth;
+					canvas.height = sHeight;
+					// Reduce flicker
+					screen.fillStyle = "#224";
+					screen.fillRect(0,0,sWidth, sHeight);
+					// Set rough fontsize
+					screen.font = round(sWidth/32) + "px sans-serif";
+
+					// And styling for options
+					document.getElementById("options").setAttribute("style", "width:"+ sWidth +"px");
+				}
+			}
+		</script>
+	</body>
+</html>
