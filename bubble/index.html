@@ -139,6 +139,8 @@
 			var shotsTaken = 0;
             // Store mistakes. Mistakes are when the shot does not match the colliding bubble in array.
             var mistakes = 0;
+            // When a mistake is made, the font changes colour briefly.
+            var mistakeFontBrightness = 16;
 
 			// New bubble is assigned this upon shooting
 			var nextBubbleHue = -1;
@@ -364,10 +366,9 @@
                         // If the scanned bubble was not of the same colour, 
                         if (scanHue != shotBubbleHue) {
                             // And no adjacent bubbles match:
-                            console.log(GetAdjacentMatchingHue(walkRow, walkCol));
                             if ( GetAdjacentMatchingHue(walkRow, walkCol).length == 0) {
-                                console.log(GetAdjacentMatchingHue(walkRow, walkCol));
                                 mistakes++;
+                                mistakeFontBrightness = 5;
                             }
                         }
 
@@ -493,7 +494,7 @@
 
 
 				// Player bar and next colour
-				screen.fillStyle = "#777";
+				screen.fillStyle = "#7" + round(mistakeFontBrightness*0.45).toString(16) + round(mistakeFontBrightness*0.45).toString(16)
 				screen.fillRect(0,sHeight*15/16,sWidth,sHeight/16);
 				// Next:
 				screen.fillStyle = "#fff";
@@ -534,7 +535,7 @@
 
                 screen.fillStyle = "#fff";
                 // No longer resets throughout the game
-			    screen.fillText("Shots:"+shotsTaken.toString().padStart(6,'0'),sWidth*0.59,sHeight*0.98);
+			    screen.fillText("Shots:"+shotsTaken.toString().padStart(6,'0'),sWidth*0.57,sHeight*0.98);
 
 				// If AI enabled?
 				if (aiEnabled) {
@@ -543,9 +544,11 @@
 				}
 				// Or let user handle this.
 				else if (gameOver == false) {
-					screen.fillText("Row in "+(MISTAKES_BEFORE_NEW_ROW - mistakes)+"...",sWidth*0.8,sHeight*0.98);
+                    screen.fillStyle = "#f"+ (mistakeFontBrightness % 2 * 15).toString(16) + (mistakeFontBrightness % 2 * 15).toString(16);
+					screen.fillText("Row in "+(MISTAKES_BEFORE_NEW_ROW - mistakes)+"...",sWidth*0.82,sHeight*0.98);
 				}
 				frameCount++;
+                mistakeFontBrightness = min(mistakeFontBrightness+0.5,15);
 			}
 
 
