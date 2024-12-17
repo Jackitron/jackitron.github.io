@@ -46,10 +46,10 @@
 		<!-- Some controls for the game settings -->
 		<div id="options" style="width:1280px">
 			<p>New Game:</p>
-			<button onclick="GAME_ROWS=6; GAME_COLS=9; SHOTS_BEFORE_NEW_ROW=9; GameReset()">S</button>
-			<button onclick="GAME_ROWS=9; GAME_COLS=13; SHOTS_BEFORE_NEW_ROW=6; GameReset()">M</button>
-			<button onclick="GAME_ROWS=14; GAME_COLS=16; SHOTS_BEFORE_NEW_ROW=6; GameReset()">L</button>
-			<button onclick="GAME_ROWS=20; GAME_COLS=20; SHOTS_BEFORE_NEW_ROW=5; GameReset()">XL</button>
+			<button onclick="GAME_ROWS=6; GAME_COLS=9; MISTAKES_BEFORE_NEW_ROW=9; GameReset()">S</button>
+			<button onclick="GAME_ROWS=9; GAME_COLS=13; MISTAKES_BEFORE_NEW_ROW=6; GameReset()">M</button>
+			<button onclick="GAME_ROWS=14; GAME_COLS=16; MISTAKES_BEFORE_NEW_ROW=6; GameReset()">L</button>
+			<button onclick="GAME_ROWS=20; GAME_COLS=20; MISTAKES_BEFORE_NEW_ROW=5; GameReset()">XL</button>
 			<p>Different Colors:</p>
 			<input id="opt_hues" class="w" type="number" value="4" step="1" min="2" max="6" onchange="HUES_TO_USE=Number(event.target.value-1)"></input>
 			&nbsp;
@@ -63,11 +63,12 @@
 			<p>Critical Mass:</p>
 			<input id="opt_mass" class="w" type="number" value="2" step="1" min="1" max="9" onchange="CRITICAL_MASS=Number(event.target.value);"></input>
 			<p>Shot Speed:</p>
-			<input id="opt_speed" class="w" type="number" min="0.05" max="0.9" value="0.5" step="0.05" onchange="SHOT_BUBBLE_SPEED=Number(min(max(event.target.value,0),1));"></input>
+			<input id="opt_speed" class="w" type="number" min="0.25" max="0.9" value="0.5" step="0.05" onchange="SHOT_BUBBLE_SPEED=Number(Math.min(Math.max(event.target.value,0),1));"></input>
 			&nbsp;
-			<p>Shots Before New Row:</p>
-			<input id="opt_shots" class="w" type="number" value="3" step="1" min="1" max="9" onchange="SHOTS_BEFORE_NEW_ROW=Number(min(max(event.target.value,0),1));"></input>
+			<p>Free Passes:</p>
+			<input id="opt_mistakes" class="w" type="number" value="4" step="1" min="1" max="9" onchange="MISTAKES_BEFORE_NEW_ROW=Number(min(max(event.target.value,0),9));"></input>
 			&nbsp;
+   			<button onclick="NewRow()">New Row Now!</button>
 		</div>
 		
 		<script defer="true">
@@ -90,15 +91,15 @@
 			var mouseY = 0;
 			// Game vars
 			const GAME_HUES = ["none", "#f04", "#04f", "#2c0", "#666", "#e90", "#b2b", "#0bc"];
-			var HUES_TO_USE = 3;
+			var HUES_TO_USE = 4;
 			var GAME_ROWS = 14;
 			var GAME_COLS = 16;
-			var SHOTS_BEFORE_NEW_ROW = 6;
+			var MISTAKES_BEFORE_NEW_ROW = 6;
 			// "Critical mass" refers to when a new bubble lands...
 			// ...how many bubbles of the same colour need be adjacent to it to mark for removal.
 			// Bubbles are then "marked" for removal by being white (bubbles[i] = 255)
 			var CRITICAL_MASS = 3;
-			// And ball speed (in bubblesize(s) per frame)
+			// And bubble speed (in bubblesize(s) per frame)
 			var SHOT_BUBBLE_SPEED = 0.5;
 
 			// And apply these configurable vars (not constants!)
@@ -107,7 +108,7 @@
 			opt_mass.value = CRITICAL_MASS;
 			opt_speed.value = SHOT_BUBBLE_SPEED;
 			opt_hues.value = HUES_TO_USE;
-			opt_shots.value = SHOTS_BEFORE_NEW_ROW;
+			opt_mistakes.value = MISTAKES_BEFORE_NEW_ROW;
 
 			// Frame counter
 			var frameCount = 0;
@@ -134,8 +135,10 @@
 			// Normally hidden until fired anyway...
 			var newBubbleX = -80;
 			var newBubbleX = -80;
-			// Every n shots, a new row is added.
+			// Store shots taken for stats
 			var shotsTaken = 0;
+            // Store mistakes. Mistakes are when the shot does not match the colliding bubble in array.
+            var mistakes = 0;
 
 			// New bubble is assigned this upon shooting
 			var nextBubbleHue = -1;
@@ -178,6 +181,7 @@
 					shotBubbleHue = nextBubbleHue;
 					SetNextHue();
 					busyWithShot = true;
+					shotsTaken++;
 				}
 			}
 
@@ -198,7 +202,8 @@
 				playerScore = 0;
 				newBubbleX = -80;
 				newBubbleX = -80;
-				shotsTaken = 0;	   
+				shotsTaken = 0;
+                mistakes = 0;  
 				newBubbleAngle = 0;
 				busyWithShot = false;
 				gameOver = false;
@@ -210,31 +215,37 @@
 				opt_mass.value = CRITICAL_MASS;
 				opt_speed.value = SHOT_BUBBLE_SPEED;
 				opt_hues.value = HUES_TO_USE;
-				opt_shots.value = SHOTS_BEFORE_NEW_ROW;
+				opt_mistakes.value = MISTAKES_BEFORE_NEW_ROW;
 
 				// Must be different to 2nd to last random number
-				let rnd1 = 0;
-				let rnd2 = 0;
-				let rnd3 = 0;
+				let lastRnd = -1;
+                let nextRnd = -1;
+                let colRef = 0;
 
 				for (let row = 0; row < GAME_ROWS; row++) {
 					for (let col = 0; col < GAME_COLS; col++) {
 						// Not up to the bottom row. Game would be impossible
 						if (row < (GAME_ROWS-1)/2) {
-							rnd3 = rnd2;
-							rnd2 = rnd1;
-							rnd1 = round(1 + Math.random()*HUES_TO_USE);
-							if (rnd1 == rnd3) { rnd1 = round(1 + Math.random()*HUES_TO_USE); }
-							bubbles[row * GAME_COLS + col % GAME_COLS] = rnd1;
+                            colRef = col % GAME_COLS;
+							nextRnd = round(1 + Math.random()*HUES_TO_USE);
+							if (lastRnd == nextRnd) { nextRnd = round(1 + Math.random()*HUES_TO_USE); }
+                            // And avoid making it the same as the last row
+							if (bubbles[(row-1) * GAME_COLS + colRef] == nextRnd) { nextRnd = round(1 + Math.random()*HUES_TO_USE); }
+                            // apply
+							bubbles[row * GAME_COLS + colRef] = nextRnd;
+                            lastRnd = nextRnd;
 						}
 						else {
-							bubbles[row * GAME_COLS + col % GAME_COLS] = 0;
+							bubbles[row * GAME_COLS + colRef] = 0;
 						}
 						bubbles[1, 1] = 2;
 					}
 				}
 				SetSize();
 				LOOP_HANDLE = setInterval(loop, 16);
+                // Run at end to ensure green isn't fired at a board of reds and blues! lmao
+                // "that's there forever now!"
+       			SetNextHue();
 			}
 
 			// Copy all other rows downward. It actually works backwards like snake segements.
@@ -244,17 +255,18 @@
 				for (let i = GAME_COLS * GAME_ROWS; i >= 0; i--) {
 					bubbles[i] = bubbles[i - GAME_COLS];
 				}
-				let last = 0;
-				let next = 0;
+				let lastRnd = 0;
+				let nextRnd = 0;
 				for (let i = 0; i < GAME_COLS; i++) {
-					next = round(1 + Math.random()*HUES_TO_USE);
-					if (next == last) { next = round(1 + Math.random()*HUES_TO_USE); }
-					bubbles[i] = next;
+					nextRnd = round(1 + Math.random()*HUES_TO_USE);
+					if (nextRnd == lastRnd) { nextRnd = round(1 + Math.random()*HUES_TO_USE); }
+                    // And avoid making it the same as the last row
+				    if (bubbles[GAME_COLS * 2 + i] == nextRnd) { nextRnd = round(1 + Math.random()*HUES_TO_USE); }
+					bubbles[i] = nextRnd;
 				}
 			}
 
 			// Firstly...
-			SetNextHue();
 			SetSize();
 			GameReset();
 
@@ -297,7 +309,7 @@
 						//screen.fillStyle = "#0f0";
 						//screen.fillRect(0, sHeight*0.97 - adjLength, 88,1);
 
-						// Incident ray has become slightly different thanks to ball size
+						// Incident ray has become slightly different thanks to bubble size
 						// AOI = AOReflect so oppAngle*2 + x = PI
 						let reflect = PI - (PI/2 - oppAngle);
 						screen.lineTo(cos(reflect)*sWidth, sHeight*0.97 - adjLength + sin(reflect)*sWidth);
@@ -348,6 +360,16 @@
 						let walkCol = XYToC(shotBubbleX, shotBubbleY);
 						bubbles[ walkRow * GAME_COLS + walkCol ] = shotBubbleHue;
 						busyWithShot = false;
+
+                        // If the scanned bubble was not of the same colour, 
+                        if (scanHue != shotBubbleHue) {
+                            // And no adjacent bubbles match:
+                            console.log(GetAdjacentMatchingHue(walkRow, walkCol));
+                            if ( GetAdjacentMatchingHue(walkRow, walkCol).length == 0) {
+                                console.log(GetAdjacentMatchingHue(walkRow, walkCol));
+                                mistakes++;
+                            }
+                        }
 
 						// Check: how many nearby of same colour?
 						// And store visited/tovisit 1D long indexes that MATCH the shot colour
@@ -416,11 +438,10 @@
 						}
 
 						// And finally, add in a new row to the top of the array
-						// If the number of shots has gone over the limit.
-						shotsTaken++;
-						if (shotsTaken >= SHOTS_BEFORE_NEW_ROW) {
-							shotsTaken = 0;
-							// Called twice to avoid unexpected behaviour
+						// If the number of mistakes has gone over the limit.
+						if (mistakes >= MISTAKES_BEFORE_NEW_ROW) {
+							mistakes = 0;
+							// Called twice to avoid shifting in balls
 							NewRow();
 							NewRow();
 						}
@@ -476,8 +497,8 @@
 				screen.fillRect(0,sHeight*15/16,sWidth,sHeight/16);
 				// Next:
 				screen.fillStyle = "#fff";
-				screen.fillText("Next:",sWidth*0.38,sHeight*0.98);
-				// ball inside dark circle
+				screen.fillText("Next:",sWidth*0.39,sHeight*0.98);
+				// bubble inside dark circle
 				screen.fillStyle = "#224";
 				screen.beginPath();
 				screen.ellipse(sWidth/2, sHeight*0.969, sWidth/35, sHeight/35,0,0,2*PI);
@@ -486,7 +507,7 @@
 				
 				// highlight where the bubble's row/col will be on landing.
 				if (guidesEnabled) {
-					DrawBubble(CRToX(XYToC(mouseX, mouseY), YToR(mouseY)), RToY(YToR(mouseY)), "#fff2");
+					DrawBubbleGuide(CRToX(XYToC(mouseX, mouseY), YToR(mouseY)), RToY(YToR(mouseY)), sin(frameCount / 10));
 				}
 
 				// Or if anything in last row, game over!
@@ -499,7 +520,7 @@
 				// Always track score!
 				// Score is increased when removing bubbles with a hue of 255.
 				screen.fillStyle = "#fff";
-				screen.fillText("Score:"+playerScore.toString().padStart(5,'0'),sWidth*0.1,sHeight*0.98);
+				screen.fillText("Score:"+playerScore.toString().padStart(12,'0'),sWidth*0.05,sHeight*0.98);
 
 				// Gameover line. (goes red if crossed)
 				if (gameOver) {
@@ -511,6 +532,10 @@
 				}
 				screen.fillRect(0,sBubbleSize*0.6 + sBubbleSize*(GAME_ROWS-1),sWidth,2);
 
+                screen.fillStyle = "#fff";
+                // No longer resets throughout the game
+			    screen.fillText("Shots:"+shotsTaken.toString().padStart(6,'0'),sWidth*0.59,sHeight*0.98);
+
 				// If AI enabled?
 				if (aiEnabled) {
 					screen.fillStyle = "#0ee";
@@ -518,8 +543,7 @@
 				}
 				// Or let user handle this.
 				else if (gameOver == false) {
-					screen.fillStyle = "#fff";
-					screen.fillText("Row in "+(SHOTS_BEFORE_NEW_ROW - shotsTaken)+"...",sWidth*0.75,sHeight*0.98);
+					screen.fillText("Row in "+(MISTAKES_BEFORE_NEW_ROW - mistakes)+"...",sWidth*0.8,sHeight*0.98);
 				}
 				frameCount++;
 			}
@@ -575,6 +599,17 @@
 				let grad = screen.createRadialGradient(x+sz,y+sz,0,x+sz,y+sz,sBubbleSize*0.45);
 				grad.addColorStop(1, hue);
 				grad.addColorStop(0, "white");
+				screen.fillStyle = grad;
+				screen.beginPath();
+				screen.ellipse(x,y,sBubbleSize/2,sBubbleSize/2,0,0,2*PI);
+				screen.fill();
+			}
+            // Or a specific transparency. Opacity is a float from 0 to 1.
+            function DrawBubbleGuide(x, y, opacity) {
+				let sz = sBubbleSize*0.1;
+				let grad = screen.createRadialGradient(x+sz,y+sz,0,x+sz,y+sz,sBubbleSize*0.45);
+				grad.addColorStop(1, "#dde" + round(frameCount/10) % 3);
+				grad.addColorStop(0, "#ffffff" + round(127 + sin(frameCount / 5) * 125).toString(16).padStart(2,0));
 				screen.fillStyle = grad;
 				screen.beginPath();
 				screen.ellipse(x,y,sBubbleSize/2,sBubbleSize/2,0,0,2*PI);
@@ -681,7 +716,7 @@
 					screen.fillStyle = "#224";
 					screen.fillRect(0,0,sWidth, sHeight);
 					// Set rough fontsize
-					screen.font = round(sWidth/32) + "px sans-serif";
+					screen.font = round(sWidth/36) + "px sans-serif";
 
 					// And styling for options
 					document.getElementById("options").setAttribute("style", "width:"+ sWidth +"px");
