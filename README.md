@@ -5,6 +5,7 @@ A continuing work-in-progress portfolio of useful projects and tech demos etc.
 - ***NASQL*** : Node-Activated Structured Query Language. An interactive query builder that converts data flow graphs into SQL selection queries using implied-order trees. Powered by ReactFlow.
 - ***1602-Crystal*** : Want to know if a message will fit on an LCD display? This tool lets you view short strings as if they were on a real 1602A LCD.
 - ***FlatVox*** : Web editor for prototyping pseudo-3D models using stacks of image slices.
+- ***ABCquence*** : Rapid sequential melody builder using p5.js with URL song sharing.
 - ***SymbolCPC*** : Locomotive BASIC symbol definer for the CPC 464/6128 etc.
 - ***Bubble*** : Classic bubble shooter game with real-time tweakable settings. (AI support coming soon).
   
