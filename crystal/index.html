@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width">
   <title>1602-Crystal</title>
   <link href="style.css" rel="stylesheet" type="text/css" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900" rel="stylesheet">
 </head>
 
 <body>
@@ -19,7 +20,8 @@
     <a id="txtSaver" download="lcddata.txt" hidden></a>
     
     <div style="background:none;">
-        <h1>1602-Crystal</h1><h3>Liquid Crystal Designer</h3>
+        <h1>1602-Crystal</h1><p><b> v1.5</b></p>
+		<h4>Jacko's Liquid Crystal Designer</h4>
         <p>Save Set:</p>
         <button onclick="SaveText()">Download</button>
         <br>
@@ -45,21 +47,20 @@
         <select>
             <option value="0">Custom Char 1</option>
         </select>
-        
     </div>
 
     <script src="script.js"></script>
     
     <!-- Each div with screen id represents one LCD design stage. -->
     <div id="screen1">
-        <h1>1</h1>
+        <h1 id="header1">1</h1>
         <canvas id="canvas1" width="540" height="240"></canvas>
         <br>
-        <p>Upper Row</p>
-        <input class="mono" maxlength="16" id="upper1" onchange="Redraw(1)"></input>
+        <p>Upper Row:</p>
+        <input class="i" maxlength="16" id="upper1" onchange="Redraw(1)"></input>
         <br>
-        <p>Lower Row</p>
-        <input class="mono" maxlength="16" id="lower1" onchange="Redraw(1)"></input>
+        <p>Lower Row:</p>
+        <input class="i" maxlength="16" id="lower1" onchange="Redraw(1)"></input>
         <br>
         <p>Description:</p>
         <input id="desc1"></input>

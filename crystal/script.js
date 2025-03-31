@@ -19,8 +19,6 @@ var lcdTextImg = document.getElementById("text");
 // And index reference (last 8 are custom characters)
 var charIndex = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ`()*+,-^_{}!\"#$%&'[]./:;<=>?@☺☻♥♦♣♠•◘".split('');
 
-// Which custom character is being edited?
-
 
 // Redraw a display:
 function Redraw(num) {
@@ -36,12 +34,9 @@ function Redraw(num) {
     grad.addColorStop(0.5, colourForward[colIndex]);
     grad.addColorStop(1, colourBack[colIndex]);
     ctx.fillStyle = grad;
-    
     ctx.fillRect(40,40,480,200);
     ctx.drawImage(baseImg, 0, 0);
     
-    console.log()
-
     // Top row, for all 16 chars etc
     let py = 82;
     for (let cha = 0; cha < 16; cha++) {
@@ -74,14 +69,22 @@ function RedrawAll() {
 
 // Add new display by copying original, then find and replace all 1's with N's.
 function AddNew() {
-    var copy = document.createElement("div");
-    numScreens++;
-    copy.id = ("screen"+numScreens);
-    copy.innerHTML = document.getElementById("screen1").innerHTML
-        .replaceAll("1\"", numScreens+"\"")
-        .replaceAll("1)", numScreens+")")
-        .replaceAll(">1<",">"+numScreens+"<");
-    document.body.appendChild(copy);
+    var copy = document.getElementById("screen"+numScreens).cloneNode(true);
+	// Re-number and remove 
+    copy.id = ("screen"+(numScreens+1).toString());
+	copy.childNodes.forEach( n => {
+		if (n.id) {
+			n.id = n.id.replace(numScreens, numScreens+1);
+			if (n.innerHTML == numScreens) {
+				n.innerHTML = n.innerHTML.replace(numScreens, numScreens+1);
+			}
+			if (n.className == 'i') n.setAttribute('onchange','Redraw('+(numScreens+1).toString()+')');
+		}
+	});
+	document.body.appendChild(copy);
+	numScreens++;
+	
+
     Redraw(numScreens);
 }
 
@@ -94,28 +97,55 @@ function Remove() {
     }
 }
 
+// Remove all displays
+function RemoveAll() {
+	while (numScreens > 1) {
+		document.getElementById("screen" + numScreens).remove();
+		numScreens--;
+	}
+}
+
 // Save to user device:
 function SaveText() {
     let saver = document.getElementById("txtSaver");
-    let text = "";
+    let txt = 'LCDDATA:'+numScreens.toString()+'\r\n';
     // Gather data:
     for (let i=1; i <= numScreens; i++) {
-        text += i.toString() + "\r\n";
-        text += document.getElementById("upper"+i).value + "\r\n";
-        text += document.getElementById("lower"+i).value + "\r\n";
-        text += document.getElementById("desc"+i).value + "\r\n";
+        txt += document.getElementById("upper"+i).value + "\r\n";
+        txt += document.getElementById("lower"+i).value + "\r\n";
+        txt += document.getElementById("desc"+i).value + "\r\n";
     }
-    saver.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    saver.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(txt));
     saver.click();
 }
 
 // Load user screens from file.
 async function LoadText() {  
     var reader = new FileReader();
-    let text = "";
+    
     // Reading files is asynchronous, so use callback.
-    reader.addEventListener('load', function() {
-        document.getElementById("desc1").value = text + "EOF";
+    reader.addEventListener('load', () => {
+		let content = reader.result;
+		// Amount is on first line
+		let lines = content.replaceAll('\r','').split('\n');
+		
+		// Clear all
+		RemoveAll();
+		// Add the required amount
+		let screens = Number(lines[0].split(':')[1])*3;
+		let idx = 1;
+		console.log(screens);
+		for (let i = 1; i < screens; i += 3) {
+			document.getElementById("upper"+idx).value = lines[i].replaceAll('\r\n','');
+			document.getElementById("lower"+idx).value = lines[i+1].replaceAll('\r\n','');
+			document.getElementById("desc"+idx).value = lines[i+2].replaceAll('\r\n','');
+			AddNew();
+			idx++;
+		}
+		Remove();
     });
-    text = reader.readAsText(txtLoader.files[0]);
+	
+	if (txtLoader) {
+		txt = reader.readAsText(txtLoader.files[0]);
+	}
 }
