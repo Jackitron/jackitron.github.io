@@ -10,5 +10,6 @@ A continuing work-in-progress portfolio of useful projects and tech demos etc.
 - ***Bubble*** : Classic bubble shooter game with real-time tweakable settings. (AI support coming soon).
   
 ## Under Construction:
-- ***Solitaire*** : Interactive playing card physics simulation suite with parametric control. Powered by P5.js.
+- ***MagicEye*** : WEBGL Parallax-based wall dodging game powered by P5.js.
+- ***Solitaire*** : Interactive playing card physics simulation suite with parametric control.
 - ***KarnaughQuiz*** : Randomly-generated questions to test your knowledge of boolean logic optimisation.
