@@ -46,10 +46,10 @@
 		<!-- Some controls for the game settings -->
 		<div id="options" style="width:1280px">
 			<p>New Game:</p>
-			<button onclick="GAME_ROWS=6; GAME_COLS=9; MISTAKES_BEFORE_NEW_ROW=9; GameReset()">S</button>
-			<button onclick="GAME_ROWS=9; GAME_COLS=13; MISTAKES_BEFORE_NEW_ROW=6; GameReset()">M</button>
-			<button onclick="GAME_ROWS=14; GAME_COLS=16; MISTAKES_BEFORE_NEW_ROW=6; GameReset()">L</button>
-			<button onclick="GAME_ROWS=20; GAME_COLS=20; MISTAKES_BEFORE_NEW_ROW=5; GameReset()">XL</button>
+			<button onclick="GAME_ROWS=6; GAME_COLS=9; MISTAKES_BEFORE_NEW_ROW=6; GameReset()">S</button>
+			<button onclick="GAME_ROWS=9; GAME_COLS=13; MISTAKES_BEFORE_NEW_ROW=5; GameReset()">M</button>
+			<button onclick="GAME_ROWS=14; GAME_COLS=16; MISTAKES_BEFORE_NEW_ROW=4; GameReset()">L</button>
+			<button onclick="GAME_ROWS=20; GAME_COLS=20; MISTAKES_BEFORE_NEW_ROW=3; GameReset()">XL</button>
 			<p>Different Colors:</p>
 			<input id="opt_hues" class="w" type="number" value="4" step="1" min="2" max="6" onchange="HUES_TO_USE=Number(event.target.value-1)"></input>
 			&nbsp;
@@ -224,11 +224,14 @@
                 let nextRnd = -1;
                 let colRef = 0;
 
+				// Number of rows is always around half
+				let rowsToPopulate = round( (GAME_ROWS+1) / 2 );
+
 				for (let row = 0; row < GAME_ROWS; row++) {
 					for (let col = 0; col < GAME_COLS; col++) {
 						// Not up to the bottom row. Game would be impossible
-						if (row < (GAME_ROWS-1)/2) {
-                            colRef = col % GAME_COLS;
+						colRef = col % GAME_COLS;
+						if (row < rowsToPopulate) {
 							nextRnd = round(1 + Math.random()*HUES_TO_USE);
 							if (lastRnd == nextRnd) { nextRnd = round(1 + Math.random()*HUES_TO_USE); }
                             // And avoid making it the same as the last row
@@ -240,7 +243,6 @@
 						else {
 							bubbles[row * GAME_COLS + colRef] = 0;
 						}
-						bubbles[1, 1] = 2;
 					}
 				}
 				SetSize();
